@@ -1,4 +1,4 @@
-from utilities import translate_var, translate_method, load_object, fill_gap, load_traj_name, scale_long_lat, process_time, preprocess_long_lat
+from utilities import translate_var, translate_method_short, load_object, fill_gap, load_traj_name, scale_long_lat, process_time, preprocess_long_lat
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -16,6 +16,8 @@ def str_convert(val):
     while abs(new_val) < 1 and new_val != 0.0:
         new_val *= 10
         power_to += 1 
+    if power_to == 1:  
+        return str(np.round(new_val / 10, 3))
     rounded = str(np.round(new_val, 2))
     if rounded[-2:] == '.0':
         rounded = rounded[:-2]
@@ -45,7 +47,7 @@ def print_row(header_val, no_gap_val, int_val):
 def print_method(long, lat, newx):
     middle_sec = "Original"
     if long != "":
-        middle_sec = translate_method(long + "-" + lat) 
+        middle_sec = translate_method_short(long + "-" + lat) 
     nh = middle_sec.replace("x", "$x$").replace("y", "$y$") 
     for v in newx:
         nh += " & $" + str_convert(v) + "$"
@@ -253,47 +255,47 @@ def plot_original_file_method(lf, long):
     plot_trapezoid(lat_dict[lf][lat], olat, times_processed, "_{y}", filename + "_y_trapz")
     plot_all(long_dict[lf][long], lat_dict[lf][lat], olong, olat, 10, filename + "_euclid")
 
-def print_cols(cols, a, b):
-    strpr = ""
+def print_cols(cols, a, b, start_tbl = ""):
+    strpr = start_tbl + "\n\t\t"
 
     for colnum in range(len(cols)):
         strpr += "\multicolumn{2}{|c|}{" + cols[colnum][0] +"}"
         if colnum != len(cols) - 1:
             strpr += " & "
-    strpr += " \\\\ \\hline\n"
+    strpr += " \\\\ \\hline\n\t\t"
 
     for colnum in range(len(cols)):
         strpr += a + " & " + b
         if colnum != len(cols) - 1:
             strpr += " & "
-    strpr += " \\\\ \\hline\n"
+    strpr += " \\\\ \\hline\n\t\t"
 
     for rownum in range(len(cols[0][1])):
         for colnum in range(len(cols)):
             strpr += "$" + str_convert(cols[colnum][2][rownum]) + "$ & $" + str_convert(cols[colnum][1][rownum]) + "$"
             if colnum != len(cols) - 1:
                 strpr += " & "
-        strpr += " \\\\ \\hline\n"
+        strpr += " \\\\ \\hline\n\t\t"
     
-    print(strpr)
+    print(strpr[:-1] + "\\end{tabular}}\n\\end{table}\n")
     
-def print_cols_shorter(cols):
-    strpr = ""
+def print_cols_shorter(cols, start_tbl = ""):
+    strpr = start_tbl + "\n\t\t"
 
     for colnum in range(len(cols)):
         strpr += cols[colnum][0]
         if colnum != len(cols) - 1:
             strpr += " & "
-    strpr += " \\\\ \\hline\n"
+    strpr += " \\\\ \\hline\n\t\t"
  
     for rownum in range(len(cols[0][1])):
         for colnum in range(len(cols)):
-            strpr += "$" + str_convert(cols[colnum][1][rownum]) + "$"
+            strpr += "$" + str_convert(cols[colnum][1][rownum] * 10**5) + "$"
             if colnum != len(cols) - 1:
                 strpr += " & "
-        strpr += " \\\\ \\hline\n"
+        strpr += " \\\\ \\hline\n\t\t"
     
-    print(strpr)
+    print(strpr[:-1] + "\\end{tabular}}\n\\end{table}\n")
 
 def get_all_for_name(lf, len_tr):  
     longitudes, latitudes, times = load_traj_name(lf)
@@ -325,65 +327,81 @@ def get_all_for_name(lf, len_tr):
     #print_row("predicted_speed", speed_no_gap[:len_tr], speed_int[:len_tr])
 
     list_print = [
-                  ["predicted_longitude_no_abs", longitudes_no_abs_no_gap[:len_tr], longitude_no_abs_int[:len_tr]],
-                  ["predicted_latitude_no_abs", latitudes_no_abs_no_gap[:len_tr], latitude_no_abs_int[:len_tr]],
-                  ["predicted_speed", speed_no_gap[:len_tr], speed_int[:len_tr]],
-                  ["predicted_direction", direction_no_gap[:len_tr], direction_int[:len_tr]],
-                  ["predicted_time", time_no_gap[:len_tr], time_int[:len_tr]]
+                  ["$x$ offset", longitudes_no_abs_no_gap[:len_tr], longitude_no_abs_int[:len_tr]],
+                  ["$y$ offset", latitudes_no_abs_no_gap[:len_tr], latitude_no_abs_int[:len_tr]],
+                  ["Speed", speed_no_gap[:len_tr], speed_int[:len_tr]],
+                  ["Heading", direction_no_gap[:len_tr], direction_int[:len_tr]],
+                  ["Time", time_no_gap[:len_tr], time_int[:len_tr]]
                 ]
 
-    #print_cols(list_print, "predicted", "actual")
+    #print_cols(list_print, "actual", "predicted")
+
+    start_tbl = "\\begin{table}[!t]\n\t\\centering"
+    start_tbl += "\n\t\\caption{The first six values from the Markov chain and real values for $x$ and $y$ offset for the shortest test trajectory, using " + translate_name[name] + ".}"
+    start_tbl += "\n\t\\label{tab:var_short_sim_long_lat_" + name + "}"
+    start_tbl += "\n\t\\resizebox{\\linewidth}{!}{\n\t\\begin{tabular}{|c|c|c|c|}\n\t\t\\hline"
 
     list_print = [
-                  ["predicted_longitude_no_abs", longitudes_no_abs_no_gap[:len_tr], longitude_no_abs_int[:len_tr]],
-                  ["predicted_latitude_no_abs", latitudes_no_abs_no_gap[:len_tr], latitude_no_abs_int[:len_tr]],
+                  ["$x$ offset", longitudes_no_abs_no_gap[:len_tr], longitude_no_abs_int[:len_tr]],
+                  ["$y$ offset", latitudes_no_abs_no_gap[:len_tr], latitude_no_abs_int[:len_tr]],
                 ]
 
-    print_cols(list_print, "predicted", "actual")
+    print_cols(list_print, "Actual", "Predicted", start_tbl)
  
+    start_tbl = "\\begin{table}[!t]\n\t\\centering"
+    start_tbl += "\n\t\\caption{The first six values from the Markov chain and real values for speed, heading, and time for the shortest test trajectory, using " + translate_name[name] + ".}"
+    start_tbl += "\n\t\\label{tab:var_short_sim_speed_heading_time_" + name + "}"
+    start_tbl += "\n\t\\resizebox{\\linewidth}{!}{\n\t\\begin{tabular}{|c|c|c|c|c|c|}\n\t\t\\hline"
+
     list_print = [
-                  ["predicted_speed", speed_no_gap[:len_tr], speed_int[:len_tr]],
-                  ["predicted_direction", direction_no_gap[:len_tr], direction_int[:len_tr]],
-                  ["predicted_time", time_no_gap[:len_tr], time_int[:len_tr]]
+                  ["Speed", speed_no_gap[:len_tr], speed_int[:len_tr]],
+                  ["Heading", direction_no_gap[:len_tr], direction_int[:len_tr]],
+                  ["Time", time_no_gap[:len_tr], time_int[:len_tr]]
                 ]
 
-    print_cols(list_print, "predicted", "actual")
+    print_cols(list_print, "Actual", "Pred.", start_tbl)
 
-    list_print_shorter = [["Original", longitudes[:len_tr]]]
+    start_tbl = "\\begin{table}[!t]\n\t\\centering"
+    start_tbl += "\n\t\\caption{The first five values (given in $10^{-5}$ degrees longitude) obtained by combining estimated variables compared with the $x$ position for the shortest test trajectory, using " + translate_name[name] + ".}"
+    start_tbl += "\n\t\\label{tab:var_long_sim_" + name + "}"
+    start_tbl += "\n\t\\resizebox{\\linewidth}{!}{\n\t\\begin{tabular}{|c|c|c|c|c|}\n\t\t\\hline"
+
+    list_print_shorter = [["Original", longitudes[1:len_tr]]]
     list_print_x = []
     #print_method("", "", longitudes[:len_tr])
     for long in long_dict[lf]:
-        if "actual" in long:
-            continue
         lat = long.replace("long", "lat").replace("x", "y") 
-        list_print_shorter.append([translate_method(long + "-" + lat), long_dict[lf][long][:len_tr]])
-        list_print_x.append([translate_method(long + "-" + lat), long_dict[lf][long][:len_tr], longitudes[:len_tr]])
+        list_print_shorter.append([translate_method_short(long + "-" + lat), long_dict[lf][long][1:len_tr]])
+        list_print_x.append([translate_method_short(long + "-" + lat), long_dict[lf][long][1:len_tr], longitudes[1:len_tr]])
         #print_method(long, lat, long_dict[lf][long][:len_tr])
         #print_cols([list_print_x[-1]], "predicted x", "actual x")
-    print_cols_shorter(list_print_shorter)
+    print_cols_shorter(list_print_shorter, start_tbl)
     #print_cols(list_print_x, "predicted x", "actual x")
         
-    list_print_shorter = [["Original", latitudes[:len_tr]]]
-    list_print = [["Original", longitudes[:len_tr], latitudes[:len_tr]]]
+    start_tbl = "\\begin{table}[!t]\n\t\\centering"
+    start_tbl += "\n\t\\caption{The first five values (given in $10^{-5}$ degrees latitude) obtained by combining estimated variables compared with the $y$ position for the shortest test trajectory, using " + translate_name[name] + ".}"
+    start_tbl += "\n\t\\label{tab:var_lat_sim_" + name + "}"
+    start_tbl += "\n\t\\resizebox{\\linewidth}{!}{\n\t\\begin{tabular}{|c|c|c|c|c|}\n\t\t\\hline"
+
+    list_print_shorter = [["Original", latitudes[1:len_tr]]]
+    list_print = [["Original", longitudes[1:len_tr], latitudes[1:len_tr]]]
     list_print_y = []
     #print_method("", "", latitudes[:len_tr])
     for long in long_dict[lf]:
-        if "actual" in long:
-            continue
         lat = long.replace("long", "lat").replace("x", "y") 
-        list_print_shorter.append([translate_method(long + "-" + lat), lat_dict[lf][lat][:len_tr]])
-        list_print.append([translate_method(long + "-" + lat), long_dict[lf][long][:len_tr], lat_dict[lf][lat][:len_tr]])
-        list_print_y.append([translate_method(long + "-" + lat), lat_dict[lf][lat][:len_tr], latitudes[:len_tr]])
+        list_print_shorter.append([translate_method_short(long + "-" + lat), lat_dict[lf][lat][1:len_tr]])
+        list_print.append([translate_method_short(long + "-" + lat), long_dict[lf][long][1:len_tr], lat_dict[lf][lat][1:len_tr]])
+        list_print_y.append([translate_method_short(long + "-" + lat), lat_dict[lf][lat][1:len_tr], latitudes[1:len_tr]])
         #print_method(long, lat, lat_dict[lf][lat][:len_tr])
         #print_cols([list_print[0], list_print[-1]], "x", "y")
         #print_cols([list_print_y[-1]], "predicted y", "actual y")
-    print_cols_shorter(list_print_shorter)
+    print_cols_shorter(list_print_shorter, start_tbl)
     #print_cols(list_print, "x", "y")
     #print_cols(list_print_y, "predicted y", "actual y")
 
-names = ["predicted", "predicted_actual", "predicted_short", "predicted_short_actual"]
+translate_name = {"predicted": "predicted values and two previous states", "predicted_actual": "actual values and two previous states", "predicted_short": "predicted values and one previous state", "predicted_short_actual": "actual values and one previous state"}
 
-for name in names:
+for name in translate_name:
     predicted_time = load_object(name + "/predicted_time")   
     predicted_longitude_no_abs = load_object(name + "/predicted_longitude_no_abs")  
     predicted_latitude_no_abs = load_object(name + "/predicted_latitude_no_abs")  
@@ -403,7 +421,7 @@ for name in names:
                 lf = long_filename
             break
 
-    print(min_len, lf)
+    #print(name, min_len, lf)
     if not os.path.isdir("presentation_plots_" + name):
         os.makedirs("presentation_plots_" + name)
     plot_original_file_method(lf, "long no abs")

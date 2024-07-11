@@ -2,243 +2,6 @@ from utilities import load_object
 import os
 import numpy as np
 import matplotlib.pyplot as plt
-        
-long_dict = load_object("markov_result/long_dict")
-lat_dict = load_object("markov_result/lat_dict") 
-distance_predicted = load_object("markov_result/distance_predicted")
-
-best_best = dict()
-worst_worst = dict()
-best_best_ride = dict()
-worst_worst_ride = dict()
-best_best_score = dict()
-worst_worst_score = dict()
-
-best_best_avg_ride = dict()
-worst_worst_avg_ride = dict()
-best_best_avg_score = dict()
-worst_worst_avg_score = dict()
-
-avg_for_ride_longlat = dict()
-
-best_best_xavg_ride = dict()
-worst_worst_xavg_ride = dict()
-best_best_xavg_score = dict()
-worst_worst_xavg_score = dict()
-
-xavg_for_ride_longlat = dict()
-
-best_best_yavg_ride = dict()
-worst_worst_yavg_ride = dict()
-best_best_yavg_score = dict()
-worst_worst_yavg_score = dict()
-
-yavg_for_ride_longlat = dict()
-
-all_metrics = dict()
-all_longs = dict()
-all_lats = dict()
-all_longlats = dict()
-for vehicle in distance_predicted:
-    avg_for_ride_longlat[vehicle] = dict() 
-    xavg_for_ride_longlat[vehicle] = dict() 
-    yavg_for_ride_longlat[vehicle] = dict() 
-    for event in distance_predicted[vehicle]:  
-        avg_for_ride_longlat[vehicle][event] = dict()
-        xavg_for_ride_longlat[vehicle][event] = dict()
-        yavg_for_ride_longlat[vehicle][event] = dict()
-        for metric_name in distance_predicted[vehicle][event]:
-            if "ray" in metric_name or "custom" in metric_name:
-                continue
-            if "no time" in metric_name or "custom" in metric_name:
-                continue
-            all_metrics[metric_name] = True
-            for longlat in distance_predicted[vehicle][event][metric_name]:
-                long = longlat.split("-")[0] 
-                lat = long.replace("long", "lat").replace("x", "y")
-                all_longs[long] = True
-                all_lats[lat] = True
-                all_longlats[long+"-"+lat] = True
-
-for longlat in all_longlats: 
-    best_best_avg_ride[longlat] = ""
-    worst_worst_avg_ride[longlat] = ""
-    best_best_avg_score[longlat] = 100000
-    worst_worst_avg_score[longlat] = -100000
-    best_best_xavg_ride[longlat] = ""
-    worst_worst_xavg_ride[longlat] = ""
-    best_best_xavg_score[longlat] = 100000
-    worst_worst_xavg_score[longlat] = -100000
-    best_best_yavg_ride[longlat] = ""
-    worst_worst_yavg_ride[longlat] = ""
-    best_best_yavg_score[longlat] = 100000
-    worst_worst_yavg_score[longlat] = -100000
-    for vehicle in distance_predicted:
-        for event in distance_predicted[vehicle]:  
-            avg_score = 0
-            xavg_score = 0
-            yavg_score = 0
-            for metric_name in all_metrics:   
-                avg_score += distance_predicted[vehicle][event][metric_name][longlat]
-                if " x" in metric_name:
-                    xavg_score += distance_predicted[vehicle][event][metric_name][longlat]
-                if " y" in metric_name:
-                    yavg_score += distance_predicted[vehicle][event][metric_name][longlat]
-            avg_score /= len(all_metrics) 
-            xavg_score /= 2 
-            yavg_score /= 2
-            avg_for_ride_longlat[vehicle][event][longlat] = avg_score
-            xavg_for_ride_longlat[vehicle][event][longlat] = xavg_score
-            yavg_for_ride_longlat[vehicle][event][longlat] = yavg_score
-            if avg_score < best_best_avg_score[longlat]:
-                best_best_avg_score[longlat] = avg_score
-                best_best_avg_ride[longlat] = vehicle + "/" + event  
-            if avg_score > worst_worst_avg_score[longlat]:
-                worst_worst_avg_score[longlat] = avg_score
-                worst_worst_avg_ride[longlat] = vehicle + "/" + event  
-            if xavg_score < best_best_xavg_score[longlat]:
-                best_best_xavg_score[longlat] = xavg_score
-                best_best_xavg_ride[longlat] = vehicle + "/" + event  
-            if xavg_score > worst_worst_xavg_score[longlat]:
-                worst_worst_xavg_score[longlat] = xavg_score
-                worst_worst_xavg_ride[longlat] = vehicle + "/" + event 
-            if yavg_score < best_best_yavg_score[longlat]:
-                best_best_yavg_score[longlat] = yavg_score
-                best_best_yavg_ride[longlat] = vehicle + "/" + event  
-            if yavg_score > worst_worst_yavg_score[longlat]:
-                worst_worst_yavg_score[longlat] = yavg_score
-                worst_worst_yavg_ride[longlat] = vehicle + "/" + event 
-
-count_best_by_avg = dict()
-count_worst_by_avg = dict()
-for longlat in all_longlats: 
-    count_best_by_avg[longlat] = 0
-    count_worst_by_avg[longlat] = 0
-count_best_by_xavg = dict()
-count_worst_by_xavg = dict()
-for longlat in all_longlats: 
-    count_best_by_xavg[longlat] = 0
-    count_worst_by_xavg[longlat] = 0
-count_best_by_yavg = dict()
-count_worst_by_yavg = dict()
-for longlat in all_longlats: 
-    count_best_by_yavg[longlat] = 0
-    count_worst_by_yavg[longlat] = 0
-
-for vehicle in avg_for_ride_longlat:
-    for event in avg_for_ride_longlat[vehicle]:  
-        bestlonglat = 100000
-        worstlonglat = -100000
-        bestlonglatname = ""
-        worstlonglatname = "" 
-        for longlat in avg_for_ride_longlat[vehicle][event]: 
-            if avg_for_ride_longlat[vehicle][event][longlat] < bestlonglat:
-                bestlonglat = avg_for_ride_longlat[vehicle][event][longlat]
-                bestlonglatname = longlat
-            if avg_for_ride_longlat[vehicle][event][longlat] > worstlonglat:
-                worstlonglat = avg_for_ride_longlat[vehicle][event][longlat]
-                worstlonglatname = longlat 
-        count_best_by_avg[bestlonglatname] += 1
-        count_worst_by_avg[worstlonglatname] += 1
-        
-for vehicle in xavg_for_ride_longlat:
-    for event in xavg_for_ride_longlat[vehicle]:  
-        bestlonglat = 100000
-        worstlonglat = -100000
-        bestlonglatname = ""
-        worstlonglatname = "" 
-        for longlat in xavg_for_ride_longlat[vehicle][event]: 
-            if xavg_for_ride_longlat[vehicle][event][longlat] < bestlonglat:
-                bestlonglat = xavg_for_ride_longlat[vehicle][event][longlat]
-                bestlonglatname = longlat
-            if xavg_for_ride_longlat[vehicle][event][longlat] > worstlonglat:
-                worstlonglat = xavg_for_ride_longlat[vehicle][event][longlat]
-                worstlonglatname = longlat 
-        count_best_by_xavg[bestlonglatname] += 1
-        count_worst_by_xavg[worstlonglatname] += 1
-
-for vehicle in yavg_for_ride_longlat:
-    for event in yavg_for_ride_longlat[vehicle]:  
-        bestlonglat = 100000
-        worstlonglat = -100000
-        bestlonglatname = ""
-        worstlonglatname = "" 
-        for longlat in yavg_for_ride_longlat[vehicle][event]: 
-            if yavg_for_ride_longlat[vehicle][event][longlat] < bestlonglat:
-                bestlonglat = yavg_for_ride_longlat[vehicle][event][longlat]
-                bestlonglatname = longlat
-            if yavg_for_ride_longlat[vehicle][event][longlat] > worstlonglat:
-                worstlonglat = yavg_for_ride_longlat[vehicle][event][longlat]
-                worstlonglatname = longlat 
-        count_best_by_yavg[bestlonglatname] += 1
-        count_worst_by_yavg[worstlonglatname] += 1
-
-for metric_name in all_metrics:   
-    best_best[metric_name] = dict()
-    worst_worst[metric_name] = dict()
-    best_best_ride[metric_name] = dict()
-    worst_worst_ride[metric_name] = dict()
-    best_best_score[metric_name] = dict()
-    worst_worst_score[metric_name] = dict()
-    longlats = set()
-    for longlat in all_longlats:   
-        best_best[metric_name][longlat] = 0
-        worst_worst[metric_name][longlat] = 0
-        best_best_ride[metric_name][longlat] = ""
-        worst_worst_ride[metric_name][longlat] = ""
-        best_best_score[metric_name][longlat] = 100000
-        worst_worst_score[metric_name][longlat] = -100000
-    for vehicle in distance_predicted:
-        for event in distance_predicted[vehicle]:  
-            minmetric = 100000
-            minname = ""  
-            bestride = ""
-            maxmetric = -100000
-            maxname = ""
-            worstride = ""
-            for longlat in all_longlats:
-                if distance_predicted[vehicle][event][metric_name][longlat] < minmetric:
-                    minmetric = distance_predicted[vehicle][event][metric_name][longlat]
-                    minname = longlat
-                if distance_predicted[vehicle][event][metric_name][longlat] > maxmetric:
-                    maxmetric = distance_predicted[vehicle][event][metric_name][longlat]
-                    maxname = longlat
-                if distance_predicted[vehicle][event][metric_name][longlat] < best_best_score[metric_name][longlat]:
-                    best_best_score[metric_name][longlat] = distance_predicted[vehicle][event][metric_name][longlat]
-                    best_best_ride[metric_name][longlat] = vehicle + "/" + event
-                if distance_predicted[vehicle][event][metric_name][longlat] > worst_worst_score[metric_name][longlat]:
-                    worst_worst_score[metric_name][longlat] = distance_predicted[vehicle][event][metric_name][longlat]
-                    worst_worst_ride[metric_name][longlat] = vehicle + "/" + event 
-            best_best[metric_name][minname] += 1
-            worst_worst[metric_name][maxname] += 1
-
-set_drawable = set()
-
-for metric in best_best_ride:
-    for method_composite in best_best_ride[metric]:
-        set_drawable.add(best_best_ride[metric][method_composite].replace("/", "/cleaned_csv/"))
-         
-for method_composite in best_best_avg_ride:
-    set_drawable.add(best_best_avg_ride[method_composite].replace("/", "/cleaned_csv/"))
- 
-for method_composite in best_best_xavg_ride:
-    set_drawable.add(best_best_xavg_ride[method_composite].replace("/", "/cleaned_csv/"))
- 
-for method_composite in best_best_yavg_ride:
-    set_drawable.add(best_best_yavg_ride[method_composite].replace("/", "/cleaned_csv/"))
-
-for metric in worst_worst_ride:
-    for method_composite in worst_worst_ride[metric]:
-        set_drawable.add(worst_worst_ride[metric][method_composite].replace("/", "/cleaned_csv/"))
-
-for method_composite in worst_worst_avg_ride:
-    set_drawable.add(worst_worst_avg_ride[method_composite].replace("/", "/cleaned_csv/"))
- 
-for method_composite in worst_worst_xavg_ride:
-    set_drawable.add(worst_worst_xavg_ride[method_composite].replace("/", "/cleaned_csv/"))
- 
-for method_composite in worst_worst_yavg_ride:
-    set_drawable.add(worst_worst_yavg_ride[method_composite].replace("/", "/cleaned_csv/"))
 
 def str_convert_new(val):
     new_val = val
@@ -317,36 +80,276 @@ def mosaic_one(rides, name, method_long = "", method_lat = ""):
     if test_ride[2] in set_drawable:
         plt.savefig(name, bbox_inches = "tight")
     plt.close()
-
-all_longlats = []
-
-for vehicle_event in long_dict:  
-    for long in long_dict[vehicle_event]:
-        lat = long.replace("long", "lat").replace("x", "y")
-        all_longlats.append([long, lat])
-    break 
  
 all_subdirs = os.listdir()
 
-if not os.path.isdir("mosaic_all//test"):
-    os.makedirs("mosaic_all//test")
+names = ["predicted", "predicted_actual", "predicted_short", "predicted_short_actual"]
 
-actual_traj = load_object("actual/actual_traj")
+for name in names:
+    if not os.path.isdir("mosaic_all/" + name + "/test"):
+        os.makedirs("mosaic_all/" + name + "/test")
 
-int_veh = sorted([int(v.split("_")[1]) for v in actual_traj.keys()])
+    long_dict = load_object("markov_result_" + name + "/long_dict")
+    lat_dict = load_object("markov_result_" + name + "/lat_dict") 
+    distance_predicted = load_object("markov_result_" + name + "/distance_predicted")
 
-for i in int_veh:  
+    best_best = dict()
+    worst_worst = dict()
+    best_best_ride = dict()
+    worst_worst_ride = dict()
+    best_best_score = dict()
+    worst_worst_score = dict()
 
-    subdir_name = "Vehicle_" + str(i)
+    best_best_avg_ride = dict()
+    worst_worst_avg_ride = dict()
+    best_best_avg_score = dict()
+    worst_worst_avg_score = dict()
 
-    val_rides = set()
-    if os.path.isfile(subdir_name + "/val_rides"):
-        val_rides = load_object(subdir_name + "/val_rides")
-        
-    for some_file in actual_traj[subdir_name]:  
+    avg_for_ride_longlat = dict()
 
-        longitudes, latitudes, is_test = actual_traj[subdir_name][some_file]
- 
-        if is_test == "test":
-            for ix_longlat in range(len(all_longlats)):
-                mosaic_one([[longitudes, latitudes, subdir_name + "/cleaned_csv/" + some_file]], "mosaic_all/test/" + subdir_name + "_" + some_file.replace(".csv", "") + "_" + all_longlats[ix_longlat][0] + "_" + all_longlats[ix_longlat][1] + "_test_mosaic.png", all_longlats[ix_longlat][0], all_longlats[ix_longlat][1])
+    best_best_xavg_ride = dict()
+    worst_worst_xavg_ride = dict()
+    best_best_xavg_score = dict()
+    worst_worst_xavg_score = dict()
+
+    xavg_for_ride_longlat = dict()
+
+    best_best_yavg_ride = dict()
+    worst_worst_yavg_ride = dict()
+    best_best_yavg_score = dict()
+    worst_worst_yavg_score = dict()
+
+    yavg_for_ride_longlat = dict()
+
+    all_metrics = dict()
+    all_longs = dict()
+    all_lats = dict()
+    all_longlats = dict()
+    for vehicle in distance_predicted:
+        avg_for_ride_longlat[vehicle] = dict() 
+        xavg_for_ride_longlat[vehicle] = dict() 
+        yavg_for_ride_longlat[vehicle] = dict() 
+        for event in distance_predicted[vehicle]:  
+            avg_for_ride_longlat[vehicle][event] = dict()
+            xavg_for_ride_longlat[vehicle][event] = dict()
+            yavg_for_ride_longlat[vehicle][event] = dict()
+            for metric_name in distance_predicted[vehicle][event]:
+                if "ray" in metric_name or "custom" in metric_name:
+                    continue
+                if "no time" in metric_name or "custom" in metric_name:
+                    continue
+                all_metrics[metric_name] = True
+                for longlat in distance_predicted[vehicle][event][metric_name]:
+                    long = longlat.split("-")[0] 
+                    lat = long.replace("long", "lat").replace("x", "y")
+                    all_longs[long] = True
+                    all_lats[lat] = True
+                    all_longlats[long+"-"+lat] = True
+
+    for longlat in all_longlats: 
+        best_best_avg_ride[longlat] = ""
+        worst_worst_avg_ride[longlat] = ""
+        best_best_avg_score[longlat] = 100000
+        worst_worst_avg_score[longlat] = -100000
+        best_best_xavg_ride[longlat] = ""
+        worst_worst_xavg_ride[longlat] = ""
+        best_best_xavg_score[longlat] = 100000
+        worst_worst_xavg_score[longlat] = -100000
+        best_best_yavg_ride[longlat] = ""
+        worst_worst_yavg_ride[longlat] = ""
+        best_best_yavg_score[longlat] = 100000
+        worst_worst_yavg_score[longlat] = -100000
+        for vehicle in distance_predicted:
+            for event in distance_predicted[vehicle]:  
+                avg_score = 0
+                xavg_score = 0
+                yavg_score = 0
+                for metric_name in all_metrics:   
+                    avg_score += distance_predicted[vehicle][event][metric_name][longlat]
+                    if " x" in metric_name:
+                        xavg_score += distance_predicted[vehicle][event][metric_name][longlat]
+                    if " y" in metric_name:
+                        yavg_score += distance_predicted[vehicle][event][metric_name][longlat]
+                avg_score /= len(all_metrics) 
+                xavg_score /= 2 
+                yavg_score /= 2
+                avg_for_ride_longlat[vehicle][event][longlat] = avg_score
+                xavg_for_ride_longlat[vehicle][event][longlat] = xavg_score
+                yavg_for_ride_longlat[vehicle][event][longlat] = yavg_score
+                if avg_score < best_best_avg_score[longlat]:
+                    best_best_avg_score[longlat] = avg_score
+                    best_best_avg_ride[longlat] = vehicle + "/" + event  
+                if avg_score > worst_worst_avg_score[longlat]:
+                    worst_worst_avg_score[longlat] = avg_score
+                    worst_worst_avg_ride[longlat] = vehicle + "/" + event  
+                if xavg_score < best_best_xavg_score[longlat]:
+                    best_best_xavg_score[longlat] = xavg_score
+                    best_best_xavg_ride[longlat] = vehicle + "/" + event  
+                if xavg_score > worst_worst_xavg_score[longlat]:
+                    worst_worst_xavg_score[longlat] = xavg_score
+                    worst_worst_xavg_ride[longlat] = vehicle + "/" + event 
+                if yavg_score < best_best_yavg_score[longlat]:
+                    best_best_yavg_score[longlat] = yavg_score
+                    best_best_yavg_ride[longlat] = vehicle + "/" + event  
+                if yavg_score > worst_worst_yavg_score[longlat]:
+                    worst_worst_yavg_score[longlat] = yavg_score
+                    worst_worst_yavg_ride[longlat] = vehicle + "/" + event 
+
+    count_best_by_avg = dict()
+    count_worst_by_avg = dict()
+    for longlat in all_longlats: 
+        count_best_by_avg[longlat] = 0
+        count_worst_by_avg[longlat] = 0
+    count_best_by_xavg = dict()
+    count_worst_by_xavg = dict()
+    for longlat in all_longlats: 
+        count_best_by_xavg[longlat] = 0
+        count_worst_by_xavg[longlat] = 0
+    count_best_by_yavg = dict()
+    count_worst_by_yavg = dict()
+    for longlat in all_longlats: 
+        count_best_by_yavg[longlat] = 0
+        count_worst_by_yavg[longlat] = 0
+
+    for vehicle in avg_for_ride_longlat:
+        for event in avg_for_ride_longlat[vehicle]:  
+            bestlonglat = 100000
+            worstlonglat = -100000
+            bestlonglatname = ""
+            worstlonglatname = "" 
+            for longlat in avg_for_ride_longlat[vehicle][event]: 
+                if avg_for_ride_longlat[vehicle][event][longlat] < bestlonglat:
+                    bestlonglat = avg_for_ride_longlat[vehicle][event][longlat]
+                    bestlonglatname = longlat
+                if avg_for_ride_longlat[vehicle][event][longlat] > worstlonglat:
+                    worstlonglat = avg_for_ride_longlat[vehicle][event][longlat]
+                    worstlonglatname = longlat 
+            count_best_by_avg[bestlonglatname] += 1
+            count_worst_by_avg[worstlonglatname] += 1
+            
+    for vehicle in xavg_for_ride_longlat:
+        for event in xavg_for_ride_longlat[vehicle]:  
+            bestlonglat = 100000
+            worstlonglat = -100000
+            bestlonglatname = ""
+            worstlonglatname = "" 
+            for longlat in xavg_for_ride_longlat[vehicle][event]: 
+                if xavg_for_ride_longlat[vehicle][event][longlat] < bestlonglat:
+                    bestlonglat = xavg_for_ride_longlat[vehicle][event][longlat]
+                    bestlonglatname = longlat
+                if xavg_for_ride_longlat[vehicle][event][longlat] > worstlonglat:
+                    worstlonglat = xavg_for_ride_longlat[vehicle][event][longlat]
+                    worstlonglatname = longlat 
+            count_best_by_xavg[bestlonglatname] += 1
+            count_worst_by_xavg[worstlonglatname] += 1
+
+    for vehicle in yavg_for_ride_longlat:
+        for event in yavg_for_ride_longlat[vehicle]:  
+            bestlonglat = 100000
+            worstlonglat = -100000
+            bestlonglatname = ""
+            worstlonglatname = "" 
+            for longlat in yavg_for_ride_longlat[vehicle][event]: 
+                if yavg_for_ride_longlat[vehicle][event][longlat] < bestlonglat:
+                    bestlonglat = yavg_for_ride_longlat[vehicle][event][longlat]
+                    bestlonglatname = longlat
+                if yavg_for_ride_longlat[vehicle][event][longlat] > worstlonglat:
+                    worstlonglat = yavg_for_ride_longlat[vehicle][event][longlat]
+                    worstlonglatname = longlat 
+            count_best_by_yavg[bestlonglatname] += 1
+            count_worst_by_yavg[worstlonglatname] += 1
+
+    for metric_name in all_metrics:   
+        best_best[metric_name] = dict()
+        worst_worst[metric_name] = dict()
+        best_best_ride[metric_name] = dict()
+        worst_worst_ride[metric_name] = dict()
+        best_best_score[metric_name] = dict()
+        worst_worst_score[metric_name] = dict()
+        longlats = set()
+        for longlat in all_longlats:   
+            best_best[metric_name][longlat] = 0
+            worst_worst[metric_name][longlat] = 0
+            best_best_ride[metric_name][longlat] = ""
+            worst_worst_ride[metric_name][longlat] = ""
+            best_best_score[metric_name][longlat] = 100000
+            worst_worst_score[metric_name][longlat] = -100000
+        for vehicle in distance_predicted:
+            for event in distance_predicted[vehicle]:  
+                minmetric = 100000
+                minname = ""  
+                bestride = ""
+                maxmetric = -100000
+                maxname = ""
+                worstride = ""
+                for longlat in all_longlats:
+                    if distance_predicted[vehicle][event][metric_name][longlat] < minmetric:
+                        minmetric = distance_predicted[vehicle][event][metric_name][longlat]
+                        minname = longlat
+                    if distance_predicted[vehicle][event][metric_name][longlat] > maxmetric:
+                        maxmetric = distance_predicted[vehicle][event][metric_name][longlat]
+                        maxname = longlat
+                    if distance_predicted[vehicle][event][metric_name][longlat] < best_best_score[metric_name][longlat]:
+                        best_best_score[metric_name][longlat] = distance_predicted[vehicle][event][metric_name][longlat]
+                        best_best_ride[metric_name][longlat] = vehicle + "/" + event
+                    if distance_predicted[vehicle][event][metric_name][longlat] > worst_worst_score[metric_name][longlat]:
+                        worst_worst_score[metric_name][longlat] = distance_predicted[vehicle][event][metric_name][longlat]
+                        worst_worst_ride[metric_name][longlat] = vehicle + "/" + event 
+                best_best[metric_name][minname] += 1
+                worst_worst[metric_name][maxname] += 1
+
+    set_drawable = set()
+
+    for metric in best_best_ride:
+        for method_composite in best_best_ride[metric]:
+            set_drawable.add(best_best_ride[metric][method_composite].replace("/", "/cleaned_csv/"))
+            
+    for method_composite in best_best_avg_ride:
+        set_drawable.add(best_best_avg_ride[method_composite].replace("/", "/cleaned_csv/"))
+    
+    for method_composite in best_best_xavg_ride:
+        set_drawable.add(best_best_xavg_ride[method_composite].replace("/", "/cleaned_csv/"))
+    
+    for method_composite in best_best_yavg_ride:
+        set_drawable.add(best_best_yavg_ride[method_composite].replace("/", "/cleaned_csv/"))
+
+    for metric in worst_worst_ride:
+        for method_composite in worst_worst_ride[metric]:
+            set_drawable.add(worst_worst_ride[metric][method_composite].replace("/", "/cleaned_csv/"))
+
+    for method_composite in worst_worst_avg_ride:
+        set_drawable.add(worst_worst_avg_ride[method_composite].replace("/", "/cleaned_csv/"))
+    
+    for method_composite in worst_worst_xavg_ride:
+        set_drawable.add(worst_worst_xavg_ride[method_composite].replace("/", "/cleaned_csv/"))
+    
+    for method_composite in worst_worst_yavg_ride:
+        set_drawable.add(worst_worst_yavg_ride[method_composite].replace("/", "/cleaned_csv/"))
+
+    all_longlats = []
+
+    for vehicle_event in long_dict:  
+        for long in long_dict[vehicle_event]:
+            lat = long.replace("long", "lat").replace("x", "y")
+            all_longlats.append([long, lat])
+        break
+
+    actual_traj = load_object("actual/actual_traj")
+
+    int_veh = sorted([int(v.split("_")[1]) for v in actual_traj.keys()])
+
+    for i in int_veh:  
+
+        subdir_name = "Vehicle_" + str(i)
+
+        val_rides = set()
+        if os.path.isfile(subdir_name + "/val_rides"):
+            val_rides = load_object(subdir_name + "/val_rides")
+            
+        for some_file in actual_traj[subdir_name]:  
+
+            longitudes, latitudes, is_test = actual_traj[subdir_name][some_file]
+    
+            if is_test == "test":
+                for ix_longlat in range(len(all_longlats)):
+                    mosaic_one([[longitudes, latitudes, subdir_name + "/cleaned_csv/" + some_file]], "mosaic_all/" + name + "/test/" + subdir_name + "_" + some_file.replace(".csv", "") + "_" + all_longlats[ix_longlat][0] + "_" + all_longlats[ix_longlat][1] + "_test_mosaic.png", all_longlats[ix_longlat][0], all_longlats[ix_longlat][1])

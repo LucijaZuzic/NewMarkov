@@ -26,6 +26,18 @@ def translate_method(longlat):
     else:
         return longlat
     
+def translate_method_short(longlat):
+    translate_name = {
+        "long no abs-lat no abs": "$x$ and $y$",  
+        "long speed dir-lat speed dir": "Time", 
+        "long speed ones dir-lat speed ones dir": "1s", 
+        "long speed actual dir-lat speed actual dir": "Actual time", 
+    }
+    if longlat in translate_name:
+        return translate_name[longlat]
+    else:
+        return longlat
+    
 translate_var = {
              "Direction": "Heading",  
              "Latitude no abs": "y offset",  

@@ -105,54 +105,50 @@ def plot_rmse(file_extension, var_name, actual, predictions, filenames, filename
         plt.savefig("rmse/" + name + "/" + file_extension + "_Vehicle_" + vehicle + "_Ride_" + ride + "_all.png", bbox_inches = "tight")
         plt.close()
   
-names = ["predicted", "predicted_actual", "predicted_short", "predicted_short_actual"]
+translate_name = {"predicted": "predicted values and two previous states", "predicted_actual": "actual values and two previous states", "predicted_short": "predicted values and one previous state", "predicted_short_actual": "actual values and one previous state"}
 
-for name in names:
-    all_x_heading, all_mine_heading, filenames_heading, filenames_length_heading = read_var("direction", name)
-    all_x_latitude_no_abs, all_mine_latitude_no_abs, filenames_latitude_no_abs, filenames_length_latitude_no_abs = read_var("latitude_no_abs", name)
-    all_x_longitude_no_abs, all_mine_longitude_no_abs, filenames_longitude_no_abs, filenames_length_longitude_no_abs = read_var("longitude_no_abs", name)
-    all_x_speed, all_mine_speed, filenames_speed, filenames_length_speed = read_var("speed", name)
-    all_x_time, all_mine_time, filenames_time, filenames_length_time = read_var("time", name)
+varnames_title = {"direction": "Heading ($\degree$)", 
+                  "latitude_no_abs": "x offset ($\degree$ long.)", 
+                  "longitude_no_abs": "y offset ($\degree$ lat.)", 
+                  "speed": "Speed (km/h)", 
+                  "time": "Time (s)"}
 
-    #plot_rmse("heading", "Heading ($\degree$)", all_mine_heading, all_x_heading, filenames_heading, filenames_length_heading)
-    #plot_rmse("latitude", "x offset ($\degree$ long.)", all_mine_latitude_no_abs, all_x_latitude_no_abs, filenames_latitude_no_abs, filenames_length_latitude_no_abs)
-    #plot_rmse("longitude", "y offset ($\degree$ lat.)", all_mine_longitude_no_abs, all_x_longitude_no_abs, filenames_longitude_no_abs, filenames_length_longitude_no_abs)
-    #plot_rmse("speed", "Speed (km/h)", all_mine_speed, all_x_speed, filenames_speed, filenames_length_speed)
-    #plot_rmse("time", "Time (s)", all_mine_time, all_x_time, filenames_time, filenames_length_time)
+varnames_name = {"direction": "heading", 
+                  "latitude_no_abs": "latitude", 
+                  "longitude_no_abs": "longitude", 
+                  "speed": "speed", 
+                  "time": "time"}
 
-    print("NRMSE")
-    print("heading", max(all_mine_heading),min(all_mine_heading), np.round(math.sqrt(mean_squared_error(all_mine_heading, all_x_heading)) / (max(all_mine_heading) - min(all_mine_heading)) * 100, 6))
-    print("latitude", max(all_mine_latitude_no_abs),min(all_mine_latitude_no_abs), np.round(math.sqrt(mean_squared_error(all_mine_latitude_no_abs, all_x_latitude_no_abs)) / (max(all_mine_latitude_no_abs) - min(all_mine_latitude_no_abs)) * 100, 6))
-    print("longitude", max(all_mine_longitude_no_abs),min(all_mine_longitude_no_abs), np.round(math.sqrt(mean_squared_error(all_mine_longitude_no_abs, all_x_longitude_no_abs)) / (max(all_mine_longitude_no_abs) - min(all_mine_longitude_no_abs)) * 100, 6))
-    print("speed", max(all_mine_speed),min(all_mine_speed), np.round(math.sqrt(mean_squared_error(all_mine_speed, all_x_speed)) / (max(all_mine_speed) - min(all_mine_speed)) * 100, 6))
-    print("time", max(all_mine_time),min(all_mine_time), np.round(math.sqrt(mean_squared_error(all_mine_time, all_x_time)) / (max(all_mine_time) - min(all_mine_time)) * 100, 6))
+dicti_to_print = dict()
+dicti_to_print_traj = dict()
+for name in translate_name:
+    dicti_to_print[name] = dict()
+    dicti_to_print_traj[name] = dict()
+    dicti_to_print[name]["MAE"] = dict()
+    dicti_to_print[name]["MSE"] = dict()
+    dicti_to_print[name]["RMSE"] = dict()
+    dicti_to_print[name]["NRMSE"] = dict()
+    dicti_to_print[name]["R2"] = dict()
+    dicti_to_print_traj[name]["Euclid"] = dict()
+    dicti_to_print_traj[name]["R2"] = dict()
+    dicti_to_print_traj[name]["MAE"] = dict()
+    dicti_to_print_traj[name]["MSE"] = dict()
+    dicti_to_print_traj[name]["RMSE"] = dict()
+    dicti_to_print_traj[name]["R2_wt"] = dict()
+    dicti_to_print_traj[name]["MAE_wt"] = dict()
+    dicti_to_print_traj[name]["MSE_wt"] = dict()
+    dicti_to_print_traj[name]["RMSE_wt"] = dict()
 
-    print("RMSE")
-    print("heading", max(all_mine_heading),min(all_mine_heading), np.round(math.sqrt(mean_squared_error(all_mine_heading, all_x_heading)), 6))
-    print("latitude", max(all_mine_latitude_no_abs),min(all_mine_latitude_no_abs), np.round(math.sqrt(mean_squared_error(all_mine_latitude_no_abs, all_x_latitude_no_abs)), 6))
-    print("longitude", max(all_mine_longitude_no_abs),min(all_mine_longitude_no_abs), np.round(math.sqrt(mean_squared_error(all_mine_longitude_no_abs, all_x_longitude_no_abs)), 6))
-    print("speed", max(all_mine_speed),min(all_mine_speed), np.round(math.sqrt(mean_squared_error(all_mine_speed, all_x_speed)), 6))
-    print("time", max(all_mine_time),min(all_mine_time), np.round(math.sqrt(mean_squared_error(all_mine_time, all_x_time)), 6))
-
-    print("R2")
-    print("heading", max(all_mine_heading),min(all_mine_heading), np.round(r2_score(all_mine_heading, all_x_heading) * 100, 6))
-    print("latitude", max(all_mine_latitude_no_abs),min(all_mine_latitude_no_abs), np.round(r2_score(all_mine_latitude_no_abs, all_x_latitude_no_abs) * 100, 6))
-    print("longitude", max(all_mine_longitude_no_abs),min(all_mine_longitude_no_abs), np.round(r2_score(all_mine_longitude_no_abs, all_x_longitude_no_abs) * 100, 6))
-    print("speed", max(all_mine_speed),min(all_mine_speed), np.round(r2_score(all_mine_speed, all_x_speed) * 100, 6))
-    print("time", max(all_mine_time),min(all_mine_time), np.round(r2_score(all_mine_time, all_x_time) * 100, 6))
-
-    print("MAE")
-    print("heading", max(all_mine_heading),min(all_mine_heading), np.round(mean_absolute_error(all_mine_heading, all_x_heading), 6))
-    print("latitude", max(all_mine_latitude_no_abs),min(all_mine_latitude_no_abs), np.round(mean_absolute_error(all_mine_latitude_no_abs, all_x_latitude_no_abs), 6))
-    print("longitude", max(all_mine_longitude_no_abs),min(all_mine_longitude_no_abs), np.round(mean_absolute_error(all_mine_longitude_no_abs, all_x_longitude_no_abs), 6))
-    print("speed", max(all_mine_speed),min(all_mine_speed), np.round(mean_absolute_error(all_mine_speed, all_x_speed), 6))
-    print("time", max(all_mine_time),min(all_mine_time), np.round(mean_absolute_error(all_mine_time, all_x_time), 6))
-
-    bleuval("direction", name)
-    bleuval("latitude_no_abs", name)
-    bleuval("longitude_no_abs", name)
-    bleuval("speed", name)
-    bleuval("time", name)
+for name in translate_name:
+    for varname in varnames_name:
+        all_x, all_mine, filenames, filenames_length = read_var(varname, name)
+        #plot_rmse(varnames_name[varname], varnames_title[varname], all_mine, all_x, filenames, filenames_length)
+        dicti_to_print[name]["MAE"][varname] = mean_absolute_error(all_mine, all_x)
+        dicti_to_print[name]["MSE"][varname] = mean_squared_error(all_mine, all_x)
+        dicti_to_print[name]["RMSE"][varname] = math.sqrt(dicti_to_print[name]["MSE"][varname])
+        dicti_to_print[name]["NRMSE"][varname] = dicti_to_print[name]["RMSE"][varname] / (max(all_mine) - min(all_mine)) * 100
+        dicti_to_print[name]["R2"][varname] = r2_score(all_mine, all_x) * 100
+        #dicti_to_print[name]["BLEU"] = bleuval(varname, name)
 
     long_dict = load_object("markov_result_" + name + "/long_dict")
     lat_dict = load_object("markov_result_" + name + "/lat_dict") 
@@ -241,20 +237,116 @@ for name in names:
                     all_actual.append({"long": longitudes, "lat": latitudes})
                     all_predicted.append({"long": long_pred, "lat": lat_pred})
         
-        print(all_longlats[ix_longlat], np.round(np.average(vals_avg), 6))
-        print(min_k, min_dist)
-        print(max_k, max_dist)
+        #print(all_longlats[ix_longlat], np.round(np.average(vals_avg), 6))
+        #print(min_k, min_dist)
+        #print(max_k, max_dist)
+        dicti_to_print_traj[name]["Euclid"][all_longlats[ix_longlat][1]] = np.average(vals_avg)
 
         r2_pred_wt = r2_score(actual_long_lat_time, predicted_long_lat_time)
 
         mae_pred_wt = mean_absolute_error(actual_long_lat_time, predicted_long_lat_time)
 
-        rmse_pred_wt = math.sqrt(mean_squared_error(actual_long_lat_time, predicted_long_lat_time))
+        mse_pred_wt = mean_squared_error(actual_long_lat_time, predicted_long_lat_time)
+
+        rmse_pred_wt = math.sqrt(mse_pred_wt)
 
         r2_pred = r2_score(actual_long_lat, predicted_long_lat)
 
         mae_pred = mean_absolute_error(actual_long_lat, predicted_long_lat)
 
-        rmse_pred = math.sqrt(mean_squared_error(actual_long_lat, predicted_long_lat))
+        mse_pred = mean_squared_error(actual_long_lat, predicted_long_lat)
+
+        rmse_pred = math.sqrt(mse_pred)
         
-        print("R2", np.round(r2_pred * 100, 2), "MAE", np.round(mae_pred, 6), "RMSE", np.round(rmse_pred, 6), "R2_wt", np.round(r2_pred_wt * 100, 2), "MAE_wt", np.round(mae_pred_wt, 6), "RMSE_wt", np.round(rmse_pred_wt, 6))
+        dicti_to_print_traj[name]["R2"][all_longlats[ix_longlat][1]] = r2_pred * 100
+        dicti_to_print_traj[name]["MAE"][all_longlats[ix_longlat][1]] = mae_pred
+        dicti_to_print_traj[name]["MSE"][all_longlats[ix_longlat][1]] = mse_pred
+        dicti_to_print_traj[name]["RMSE"][all_longlats[ix_longlat][1]] = rmse_pred
+        dicti_to_print_traj[name]["R2_wt"][all_longlats[ix_longlat][1]] = r2_pred_wt
+        dicti_to_print_traj[name]["MAE_wt"][all_longlats[ix_longlat][1]] = mae_pred_wt
+        dicti_to_print_traj[name]["MSE_wt"][all_longlats[ix_longlat][1]] = mse_pred_wt
+        dicti_to_print_traj[name]["RMSE_wt"][all_longlats[ix_longlat][1]] = rmse_pred_wt
+        #print("R2", np.round(r2_pred * 100, 2), "MAE", np.round(mae_pred, 6), "RMSE", np.round(rmse_pred, 6), "R2_wt", np.round(r2_pred_wt * 100, 2), "MAE_wt", np.round(mae_pred_wt, 6), "RMSE_wt", np.round(rmse_pred_wt, 6))
+
+def str_convert(val):
+    if val == False:
+        return "0"
+    if val == True:
+        return "1"
+    new_val = val
+    power_to = 0
+    while abs(new_val) < 1 and new_val != 0.0:
+        new_val *= 10
+        power_to += 1 
+    if power_to == 1:  
+        return str(np.round(new_val / 10, 3))
+    rounded = str(np.round(new_val, 2))
+    if rounded[-2:] == '.0':
+        rounded = rounded[:-2]
+    if power_to != 0:  
+        rounded += " \\times 10^{-" + str(power_to) + "}"
+    return rounded
+
+translate_var_new = {
+             "direction": "Heading",  
+             "latitude_no_abs": "$y$ offset",  
+             "longitude_no_abs": "$x$ offset",   
+             "time": "Time",
+             "speed": "Speed", 
+             }
+ord_metric = {"NRMSE": "NRMSE (\\%)", "RMSE": "RMSE", "R2": "$R^{2}$", "MAE": "MAE"}
+for name in dicti_to_print:
+    strpr = "\\begin{table}[!t]\n\t\\centering"
+    strpr += "\n\t\\caption{The NRMSE (\\%), RMSE, $R^{2}$ (\\%), and MAE for each estimated variable in the testing dataset, using " + translate_name[name] + ".}"
+    strpr += "\n\t\\label{tab:varmetric_" + name + "}"
+    strpr += "\n\t\\resizebox{\\linewidth}{!}{\n\t\\begin{tabular}{|c|c|c|c|c|}\n\t\t\\hline\n\t\tVariable"
+    for metric in ord_metric:
+        strpr += " & " + ord_metric[metric]
+    strpr += " \\\\ \\hline"
+    for varname in dicti_to_print[name]["R2"]:
+        strpr += "\n\t\t" + translate_var_new[varname]
+        for metric in ord_metric:
+            strpr += " & $" + str_convert(dicti_to_print[name][metric][varname]) + "$"
+        strpr += " \\\\ \\hline"
+    strpr += "\n\t\\end{tabular}}\n\\end{table}\n"
+    print(strpr)
+
+translate_method_new = {
+        "lat no abs": "$x$ and $y$",  
+        "lat speed dir": "Time", 
+        "lat speed ones dir": "1s", 
+        "lat speed actual dir": "Actual time", 
+    }
+ord_metric = {"Euclid": "Euclid", "RMSE": "RMSE", "R2": "$R^{2}$", "MAE": "MAE"}
+for name in dicti_to_print_traj:
+    strpr = "\\begin{table}[!t]\n\t\\centering"
+    strpr += "\n\t\\caption{The average Euclidean distance, RMSE, $R^{2}$ (\\%), and MAE for each trajectory estimation method, using " + translate_name[name] + ".}"
+    strpr += "\n\t\\label{tab:trajmetric_" + name + "}"
+    strpr += "\n\t\\resizebox{\\linewidth}{!}{\n\t\\begin{tabular}{|c|c|c|c|c|}\n\t\t\\hline\n\t\tMethod"
+    for metric in ord_metric:
+        strpr += " & " + ord_metric[metric]
+    strpr += " \\\\ \\hline"
+    for methodname in dicti_to_print_traj[name]["R2"]:
+        strpr += "\n\t\t" + translate_method_new[methodname]
+        for metric in ord_metric:
+            strpr += " & $" + str_convert(dicti_to_print_traj[name][metric][methodname]) + "$"
+        strpr += " \\\\ \\hline"
+    strpr += "\n\t\\end{tabular}}\n\\end{table}\n"
+    print(strpr)
+    
+ord_metric = {"RMSE_wt": "RMSE", "R2_wt": "$R^{2}$", "MAE_wt": "MAE"}
+for name in dicti_to_print_traj:
+    strpr = "\\begin{table}[!t]\n\t\\centering"
+    strpr += "\n\t\\caption{The RMSE, $R^{2}$ (\\%), and MAE for each trajectory estimation method combined with timestamps, using " + translate_name[name] + ".}"
+    strpr += "\n\t\\label{tab:trajmetric_wt_" + name + "}"
+    strpr += "\n\t\\resizebox{\\linewidth}{!}{\n\t\\begin{tabular}{|c|c|c|c|c|}\n\t\t\\hline\n\t\tMethod"
+    for metric in ord_metric:
+        strpr += " & " + ord_metric[metric]
+    strpr += " \\\\ \\hline"
+    for methodname in dicti_to_print_traj[name]["R2"]:
+        strpr += "\n\t\t" + translate_method_new[methodname]
+        for metric in ord_metric:
+            strpr += " & $" + str_convert(dicti_to_print_traj[name][metric][methodname]) + "$"
+        strpr += " \\\\ \\hline"
+    strpr += "\n\t\\end{tabular}}\n\\end{table}\n"
+    print(strpr)
